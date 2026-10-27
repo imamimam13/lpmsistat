@@ -1,0 +1,19 @@
+services:
+  lpmsistat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lpmsistat-app
+    restart: unless-stopped
+    ports:
+      - "38921:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:./dev.db
+      - PORT=3000
+    volumes:
+      - lpmsistat_db_data:/app/prisma
+
+volumes:
+  lpmsistat_db_data:
+    driver: local

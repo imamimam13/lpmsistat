@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model SiteConfig {
+  id                   String   @id @default("default")
+  universityName       String   @default("Universitas Nusantara")
+  satgasName           String   @default("LPMI & Satgas SPMI")
+  tagline              String   @default("Portal Statistik Pelaporan, Evaluasi Akademik, AMI & Akreditasi")
+  description          String   @default("Sistem Informasi Terpadu Lembaga Penjaminan Mutu Internal (LPMI) untuk pemantauan tindak lanjut kegiatan akademik, Audit Mutu Internal (AMI), bukti fisik akreditasi BAN-PT/LAM, siklus RTL-RTM, serta satgas kampus.")
+  logoUrl              String   @default("")
+  primaryColor         String   @default("#1e3a8a")
+  secondaryColor       String   @default("#0284c7")
+  accentColor          String   @default("#f59e0b")
+  contactEmail         String   @default("lpmi@univ.ac.id")
+  contactPhone         String   @default("+62 811-0000-1234")
+  officeAddress        String   @default("Gedung Rektorat Lt. 2, Kantor LPMI & Gugus Mutu")
+  footerText           String   @default("© 2026 LPMI Universitas Nusantara. Mendukung Akreditasi Unggul & Budaya Mutu PPEPP.")
+  adminPassword        String   @default("admin123")
+  showPublicFormButton Boolean  @default(true)
+  publicFormUrl        String   @default("https://wa.me/6281100001234")
+  headOfLpmiName       String   @default("Prof. Dr. Ir. H. Ahmad Fauzi, M.Eng.")
+  headOfLpmiNip        String   @default("19750412 200112 1 002")
+  rectorName           String   @default("Prof. Dr.rer.nat. Budi Santoso, M.Sc.")
+  rectorNip            String   @default("19680920 199403 1 001")
+  masterDriveFolderUrl String?  @default("") // Link Google Drive Master Akreditasi Kampus
+  updatedAt            DateTime @updatedAt
+}
+
+model FacultyUnit {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  code            String?
+  type            String   @default("FAKULTAS") // FAKULTAS, PRODI, PASCASARJANA, LEMBAGA, BIRO_UPT, UMUM
+  headName        String?  // Nama Dekan / Kaprodi / Kepala Unit
+  gdriveFolderUrl String?  // Link Google Drive Bukti Akreditasi Unit
+  createdAt       DateTime @updatedAt
+}
+
+model ReportCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  scope     String   @default("AKADEMIK_SPMI") // AKADEMIK_SPMI, AMI_MONEV, LAYANAN_SARPRAS, ETIK_SATGAS
+  stdRef    String?  // Standar SN-Dikti / Kriteria Akreditasi
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id              String    @id @default(cuid())
+  ticketNumber    String    @unique
+  title           String
+  scope           String    @default("AKADEMIK_SPMI")
+  category        String
+  spmiStandard    String    @default("Standar Proses Pembelajaran")
+  accreditationCriterion String @default("Kriteria 6: Pendidikan") // 9 Kriteria BAN-PT / LAM
+  findingType     String    @default("KTS_MINOR")
+  reporterRole    String
+  facultyOrUnit   String
+  incidentDate    DateTime
+  reportedDate    DateTime  @default(now())
+  resolvedDate    DateTime?
+  status          String    @default("DITERIMA")
+  urgency         String    @default("SEDANG")
+  publicNote      String?
+  // Link Bukti Pendukung Google Drive untuk Akreditasi
+  evidenceDriveUrl String?
+  // Siklus Mutu SPMI: RTL, RTM & RTL Lanjutan dari RTM
+  rootCause       String?   // Akar Masalah
+  rtlPlan         String?   // Rencana Tindak Lanjut Unit
+  rtlPic          String?   // PIC Unit
+  rtlTargetDate   String?   // Target Waktu
+  rtlStatus       String    @default("BELUM_DIBUAT")
+  rtmAgenda       String?   // Agenda / Keputusan RTM
+  rtmDecisionDate DateTime? // Tanggal Keputusan RTM
+  rtlFromRtm      String?   // RTL Lanjutan hasil Keputusan RTM (Tindakan Peningkatan/Pencegahan Baru)
+  rtlFromRtmPic   String?   // PIC Penugasan RTL dari RTM
+  rtlFromRtmTarget String?  // Target Selesai RTL dari RTM
+  rtlFromRtmStatus String   @default("MENUNGGU_PELAKSANAAN") // MENUNGGU_PELAKSANAAN, BERJALAN, TUNTAS
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model AuditSession {
+  id              String           @id @default(cuid())
+  auditCode       String           @unique
+  cyclePeriod     String           @default("Siklus AMI 2026/2027 Ganjil")
+  facultyOrUnit   String
+  auditeePic      String
+  leadAuditor     String
+  memberAuditor   String?
+  auditDate       DateTime         @default(now())
+  status          String           @default("DIJADWALKAN")
+  summaryNote     String?
+  averageScore    Float            @default(0)
+  gdriveReportUrl String?          // Link Google Drive LHA / Bukti Visitasi
+  checklists      AuditChecklist[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model AuditChecklist {
+  id                 String       @id @default(cuid())
+  auditSessionId     String
+  auditSession       AuditSession @relation(fields: [auditSessionId], references: [id], onDelete: Cascade)
+  spmiStandard       String
+  indicatorText      String
+  targetDesc         String       @default("100% Terpenuhi sesuai Standar SPMI")
+  accreditationCriterion String   @default("Kriteria 6: Pendidikan")
+  score              Int          @default(3)
+  compliance         String       @default("MENCAPAI")
+  auditorNote        String?
+  rootCause          String?
+  rtlRecommendation  String?
+  evidenceDriveUrl   String?      // Link Google Drive Bukti Standar Ini
+  linkedReportId     String?
+  createdAt          DateTime     @default(now())
+}
