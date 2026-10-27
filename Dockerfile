@@ -23,7 +23,7 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=38921
+ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV DATABASE_URL="file:./dev.db"
 
@@ -41,6 +41,6 @@ COPY --from=builder /app/package.json ./package.json
 RUN chown -R nextjs:nodejs /app/prisma
 USER nextjs
 
-EXPOSE 38921
+EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma db push && node_modules/.bin/next start -p 38921"]
+CMD ["sh", "-c", "npx prisma db push && node_modules/.bin/next start"]
