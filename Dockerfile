@@ -16,7 +16,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NODE_ENV=production
 ENV DATABASE_URL="file:./dev.db"
-RUN npx prisma generate
+RUN npx prisma generate && npx prisma db push
 RUN npm run build
 
 # Stage 3: Runner

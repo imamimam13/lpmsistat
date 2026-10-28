@@ -368,59 +368,8 @@ export async function ensureSeedAndGetData() {
     }
   }
 
-  // Seed sample Audit Mutu Internal (AMI) Sessions if empty
-  const auditCount = await prisma.auditSession.count();
-  if (auditCount === 0) {
-    const currentYear = new Date().getFullYear();
-    const sampleSessions = [
-      {
-        auditCode: `AMI-${currentYear}-FT-01`,
-        cyclePeriod: `Siklus AMI ${currentYear}/${currentYear + 1} Ganjil`,
-        facultyOrUnit: "Fakultas Teknik",
-        auditeePic: "Dr. Eng. Hendra Wijaya, S.T., M.T. (Dekan FT)",
-        leadAuditor: "Prof. Dr. Ir. Siti Aminah, M.Sc.",
-        memberAuditor: "Dr. Rina Kusuma, M.Kom.",
-        auditDate: new Date(currentYear, 8, 15),
-        status: "SELESAI_LHA",
-        summaryNote: "Secara umum Fakultas Teknik telah melampaui Standar Proses Pembelajaran dan Standar Kurikulum OBE, namun ditemukan 1 KTS Minor pada kalibrasi alat laboratorium uji material.",
-        averageScore: 3.44,
-        gdriveReportUrl: "https://drive.google.com/drive/folders/lha_ami_ft_2026",
-        checklists: DEFAULT_AMI_INDICATORS.map((ind, idx) => ({
-          spmiStandard: ind.spmiStandard,
-          indicatorText: ind.indicatorText,
-          targetDesc: ind.targetDesc,
-          accreditationCriterion: ind.accreditationCriterion,
-          score: idx === 5 ? 2 : idx % 2 === 0 ? 4 : 3,
-          compliance: idx === 5 ? "KTS_MINOR" : idx % 2 === 0 ? "MELAMPAUI" : "MENCAPAI",
-          auditorNote: idx === 5 ? "Ditemukan 3 alat uji tarik di Lab Struktur yang masa sertifikat kalibrasinya habis bulan lalu." : "Dokumen bukti tersedia lengkap dan terverifikasi.",
-          rootCause: idx === 5 ? "Pengajuan anggaran kalibrasi tahunan terlambat diajukan sebelum awal semester." : null,
-          rtlRecommendation: idx === 5 ? "Penjadwalan kalibrasi ulang segera bersama UPT Lab Terpadu paling lambat akhir bulan depan." : null,
-          evidenceDriveUrl: "https://drive.google.com/file/d/evidence_sample_gdrive",
-        })),
-      },
-    ];
-
-    for (const sess of sampleSessions) {
-      try {
-        const existing = await prisma.auditSession.findUnique({
-          where: { auditCode: sess.auditCode },
-        });
-        if (!existing) {
-          const { checklists, ...sessionData } = sess;
-          await prisma.auditSession.create({
-            data: {
-              ...sessionData,
-              checklists: {
-                create: checklists,
-              },
-            },
-          });
-        }
-      } catch {
-        // Ignored if inserted concurrently by parallel build worker
-      }
-    }
-  }
+  // Master Kategori dan Master Fakultas tetap di-seed sebagai master referensi dasar.
+  // Data transaksional Sesi AMI dan Laporan dibiarkan bersih / kosong (0 data) sesuai permintaan.
 
   const faculties = await prisma.facultyUnit.findMany({
     orderBy: { name: "asc" },
