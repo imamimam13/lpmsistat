@@ -8,7 +8,11 @@ RUN apk add --no-cache libc6-compat openssl
 FROM base AS deps
 COPY package.json package-lock.json ./
 COPY prisma ./prisma/
-RUN npm ci
+RUN npm config set fetch-retries 5 \
+    && npm config set fetch-retry-mintimeout 20000 \
+    && npm config set fetch-retry-maxtimeout 120000 \
+    && npm config set fetch-timeout 300000 \
+    && npm ci
 
 # Stage 2: Builder
 FROM base AS builder
@@ -43,4 +47,4 @@ USER nextjs
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma db push && node_modules/.bin/next start"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate && node_modules/.bin/next start"]
